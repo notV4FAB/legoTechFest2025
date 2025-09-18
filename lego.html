@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lego Tech Fest 2025 — Convertite en Lego</title>
+<style>
+:root { font-size:16px; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  background:radial-gradient(1200px 600px at 10% 10%, rgba(0,212,255,0.035), transparent),
+             linear-gradient(135deg,#0f1121 0%, #2b2340 100%);
+  color:#e9eef8; display:flex; flex-direction:column; min-height:100vh; overflow-x:hidden;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+header,footer{
+  background:rgba(0,0,0,0.15);backdrop-filter:blur(6px);padding:14px 16px;text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,0.45)
+}
+header h1{font-size:1.1rem;letter-spacing:1px}
+footer p{font-size:0.85rem;color:#bfc8df}
+
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;position:relative}
+.card{
+  width:100%; max-width:980px; border-radius:16px; padding:26px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.008));
+  box-shadow:0 18px 60px rgba(2,6,23,0.6); position:relative; overflow:hidden;
+  transform: scale(0.98) translateY(8px) rotate(-0.4deg); opacity:0;
+  animation:cardIntro 0.9s cubic-bezier(.2,.9,.3,1) forwards;
+}
+@keyframes cardIntro{ to { transform:scale(1) translateY(0) rotate(0); opacity:1 } }
+
+.floating-back{
+  position:absolute; top:-20px; left:-20px; z-index:60;
+  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(10,10,12,0.72); border:2px solid rgba(255,255,255,0.06);
+  color:#fff; cursor:pointer; box-shadow:0 10px 36px rgba(0,0,0,0.6); font-weight:700;
+  transition: transform .2s ease;
+}
+.floating-back:hover{transform:translateY(-6px)}
+
+.scene{display:none; opacity:0; transition:opacity .35s ease}
+.scene.active{display:flex; opacity:1; flex-direction:column;align-items:center;justify-content:center; gap:16px}
+
+.center-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+
+#webcamPreview{
+  width:100%; max-width:760px; aspect-ratio:16/9; border-radius:14px; overflow:hidden;
+  border:4px solid rgba(0,212,255,0.06); box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  position:relative; background:#05060a;
+}
+#webcamVideo{
+  width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block;
+}
+
+#counter{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0);
+  font-size:6rem; font-weight:900; color:#00d4ff;
+  text-shadow:0 8px 30px rgba(0,0,0,0.7);
+  z-index:60; pointer-events:none; transition:transform .11s ease;
+}
+.counter-show{ transform:translate(-50%,-50%) scale(1); }
+
+#flash{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:70 }
+
+.btn{
+  -webkit-tap-highlight-color:transparent;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px 28px;border-radius:14px;border:none;cursor:pointer;font-weight:800;
+  font-size:1.05rem; color:#061223;
+  background:linear-gradient(180deg,#00d4ff,#0070b8); box-shadow:0 14px 44px rgba(0,212,255,0.12);
+  transition:transform .18s, box-shadow .18s, opacity .18s;
+}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.btn:active{transform:translateY(2px)}
+.btn.ghost{
+  background:transparent;color:#e9eef8;border:1px solid rgba(255,255,255,0.06); box-shadow:none; padding:12px 20px;
+}
+.btn.large{ padding:18px 40px; font-size:1.18rem; border-radius:16px; }
+
+.processing-area{ min-height:300px; display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px; }
+.processing-box{
+  width:220px;height:120px;border-radius:12px; display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+  border:1px solid rgba(255,255,255,0.02); box-shadow:0 12px 36px rgba(0,0,0,0.45);
+}
+.brick{ width:28px;height:20px;border-radius:4px;margin:6px; animation:brickFloat 1.6s ease-in-out infinite; }
+@keyframes brickFloat{ 0%{transform:translateY(0)} 50%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
+
+#nameInput{ width:100%; max-width:420px; padding:14px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); background:rgba(8,10,14,0.36); color:#eaf2ff; font-size:1rem; }
+
+#legoPreview{ max-width:86%; border-radius:12px; box-shadow:0 16px 50px rgba(0,0,0,0.55) }
+#finalPreview{ max-width:72%; border-radius:12px; box-shadow:0 18px 64px rgba(0,0,0,0.6) }
+
+.confetti{ position:fixed; pointer-events:none; z-index:9999; }
+.hidden{display:none!important}
+.muted{color:#9fb0d8;font-size:0.95rem}
+
+@media (max-width:720px){
+  #counter{ font-size:4rem }
+  .btn{ padding:14px 20px; font-size:1rem }
+  #webcamPreview{ max-width:94% }
+  .processing-box{ width:160px; height:100px }
+}
+</style>
+</head>
+<body>
+<header><h1>Lego Tech Fest 2025</h1></header>
+<main>
+  <div class="card" id="card">
+
+    <button class="floating-back" id="backToIndex" title="Volver al inicio">←</button>
+
+    <!-- SCENE 1: WEBCAM -->
+    <section id="sceneWebcam" class="scene active center-col">
+      <div id="webcamPreview" aria-label="Vista previa de la cámara">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <div id="counter" aria-hidden="true">5</div>
+        <div id="flash" class="hidden" aria-hidden="true"></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;justify-content:center;margin-top:12px;">
+        <button id="btnCapture" class="btn large">Tomar foto</button>
+      </div>
+      <p class="muted">Presioná "Tomar foto". El contador aparecerá y te avisará cuándo.</p>
+    </section>
+
+    <!-- SCENE 2: PROCESSING -->
+    <section id="sceneProcessing" class="scene center-col">
+      <div class="processing-area">
+        <div class="processing-box" aria-hidden="true">
+          <div style="display:flex;align-items:center;justify-content:center;">
+            <div class="brick" style="background:#ff6ec7"></div>
+            <div class="brick" style="background:#00d4ff; animation-delay:.12s"></div>
+            <div class="brick" style="background:#ffd166; animation-delay:.24s"></div>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div class="muted" id="processingText">Generando tu versión Lego... aguarda un instante</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 3: PREVIEW + NAME -->
+    <section id="scenePreview" class="scene center-col">
+      <img id="legoPreview" alt="Previsualización Lego" />
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;">
+        <input id="nameInput" type="text" placeholder="Elegí un nombre único (ej: juan_legovip)" />
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button id="btnSave" class="btn large" disabled>Guardar</button>
+          <button id="btnRetake" class="btn ghost">Volver a tomar</button>
+        </div>
+        <div class="muted" id="nameHint">El nombre será usado para el archivo descargado.</div>
+      </div>
+    </section>
+
+    <!-- SCENE 4: FINAL -->
+    <section id="sceneFinal" class="scene center-col">
+      <h2>¡Listo! Tu Lego está guardado.</h2>
+      <img id="finalPreview" alt="Resultado final" />
+      <button id="btnFinal" class="btn large">Finalizar</button>
+    </section>
+
+  </div>
+</main>
+<footer><p>Tech Fest 2025. Creado por Juan Bautista Fabris Rico y Francisco Farina</p></footer>
+
+<script>
+const scenes = {
+  webcam: document.getElementById('sceneWebcam'),
+  processing: document.getElementById('sceneProcessing'),
+  preview: document.getElementById('scenePreview'),
+  final: document.getElementById('sceneFinal')
+};
+function showScene(key){
+  Object.values(scenes).forEach(s => { s.classList.remove('active'); s.style.display='none'; });
+  const el = scenes[key]; el.style.display='flex';
+  requestAnimationFrame(()=>el.classList.add('active'));
+}
+
+document.getElementById('backToIndex').onclick = ()=> window.location.href='index.html';
+
+const video = document.getElementById('webcamVideo');
+const counter = document.getElementById('counter');
+const flash = document.getElementById('flash');
+const btnCapture = document.getElementById('btnCapture');
+const btnRetake = document.getElementById('btnRetake');
+const btnSave = document.getElementById('btnSave');
+const nameInput = document.getElementById('nameInput');
+const legoPreview = document.getElementById('legoPreview');
+const finalPreview = document.getElementById('finalPreview');
+const btnFinal = document.getElementById('btnFinal');
+
+let stream=null, capturedBlob=null, legoBlob=null, legoUrl=null, counting=false;
+
+// START WEBCAM
+async function startWebcam(){
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720},audio:false});
+    video.srcObject=stream;
+  }catch(err){ alert('No se pudo acceder a la cámara: '+err.message); }
+}
+startWebcam();
+
+// COUNTER ANIMATION
+function showCounter(val){ counter.textContent=val; counter.classList.add('counter-show'); counter.classList.remove('hidden'); }
+function hideCounter(){ counter.classList.remove('counter-show'); setTimeout(()=>counter.classList.add('hidden'),160);}
+function cameraShake(){ const c=document.getElementById('card'); c.style.transition='transform .2s'; c.style.transform='translateX(-6px)'; setTimeout(()=>c.style.transform='translateX(6px)',80); setTimeout(()=>c.style.transform='translateX(-3px)',160); setTimeout(()=>c.style.transform='translateX(0)',240); }
+
+// CAPTURE PHOTO
+btnCapture.addEventListener('click', ()=>{
+  if(counting) return;
+  counting=true; btnCapture.disabled=true; btnCapture.style.opacity=0;
+
+  let t=5; showCounter(t);
+  const tick = setInterval(()=>{
+    t--;
+    if(t>0){
+      counter.style.transform='translate(-50%,-50%) scale(1.18) rotate(-2deg)';
+      setTimeout(()=>counter.style.transform='translate(-50%,-50%) scale(1) rotate(0)',140);
+      counter.textContent=t; cameraShake();
+    } else {
+      clearInterval(tick); counter.textContent='✓';
+      flash.style.opacity=0.95; flash.classList.remove('hidden');
+      setTimeout(()=>{flash.style.opacity=0; flash.classList.add('hidden');},120);
+      setTimeout(()=>{ hideCounter(); captureFrame(); },180);
+    }
+  },1000);
+});
+
+// CAPTURE FRAME
+function captureFrame(){
+  try{
+    const canvas=document.createElement('canvas'); canvas.width=video.videoWidth||1280; canvas.height=video.videoHeight||720;
+    const ctx=canvas.getContext('2d'); ctx.translate(canvas.width,0); ctx.scale(-1,1); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    canvas.toBlob(async(blob)=>{
+      if(!blob){ alert('Error capturando foto'); btnCapture.disabled=false; btnCapture.style.opacity=1; counting=false; return; }
+      capturedBlob=blob; showScene('processing');
+      const ok=await generateLegoOnBackend(blob);
+      if(ok){ legoPreview.src=legoUrl; nameInput.value=''; btnSave.disabled=false; showScene('preview'); nameInput.focus(); }
+      else{ alert('Error generando la imagen. Intentá nuevamente'); showScene('webcam'); btnCapture.disabled=false; btnCapture.style.opacity=1; }
+      counting=false;
+    },'image/png');
+  }catch(e){ console.error(e); alert('Error al capturar'); counting=false; btnCapture.disabled=false; btnCapture.style.opacity=1; }
+}
+
+// ================== AI API ==================
+async function generateLegoOnBackend(photoBlob){
+  try{
+    // Convertimos blob a base64 para enviar como URL inline
+    const base64 = await new Promise(r=>{ const reader=new FileReader(); reader.onload=()=>r(reader.result.split(',')[1]); reader.readAsDataURL(photoBlob); });
+
+    const resp = await fetch('/.netlify/functions/generate-lego', { // O tu endpoint serverless que usa el secret WORDWARE_API_KEY
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image_base64:base64})
+    });
+    if(!resp.ok) throw new Error('Error AI '+resp.status);
+    const data = await resp.json();
+    const blob = await (await fetch(data.result_url)).blob();
+    if(legoUrl) URL.revokeObjectURL(legoUrl);
+    legoBlob=blob; legoUrl=URL.createObjectURL(legoBlob);
+    return true;
+  }catch(err){ console.error(err); return false; }
+}
+
+// SAVE IMAGE
+btnSave.addEventListener('click',()=>{
+  if(!legoUrl){ alert('No hay imagen para guardar'); return; }
+  const name=nameInput.value.trim()||'lego_user';
+  const link=document.createElement('a'); link.href=legoUrl; link.download=name+'.png'; link.click();
+  finalPreview.src=legoUrl; cameraShake(); startConfetti(); showScene('final');
+});
+
+// RETAKE
+btnRetake.addEventListener('click',()=>{
+  if(legoUrl) URL.revokeObjectURL(legoUrl); legoUrl=null; legoBlob=null; capturedBlob=null;
+  btnCapture.disabled=false; btnCapture.style.opacity=1; showScene('webcam');
+});
+
+// FINAL
+btnFinal.addEventListener('click',()=>{ const c=document.getElementById('card'); c.style.transition='transform .5s ease, opacity .45s ease'; c.style.transform='scale(.92) translateY(-24px) rotate(-2deg)'; c.style.opacity=0; setTimeout(()=>window.location.href='index.html',520); });
+
+// CONFETTI
+function startConfetti(){
+  const count=48;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div'); el.className='confetti';
+    el.style.left=(10+Math.random()*80)+'%'; el.style.top=(-5-Math.random()*10)+'vh';
+    const w=8+Math.random()*12; el.style.width=w+'px'; el.style.height=(w*0.6)+'px';
+    el.style.background=`hsl(${Math.random()*360},80%,60%)`;
+    el.style.transform=`rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    const anim=el.animate([{transform:`translateY(0) rotate(${Math.random()*360}deg)`,opacity:1},
+                           {transform:`translateY(80vh) rotate(${Math.random()*900}deg)`,opacity:0.1}],
+                           {duration:1600+Math.random()*900,easing:'cubic-bezier(.2,.6,.3,1)'});
+    anim.onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>
