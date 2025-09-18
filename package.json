@@ -1,0 +1,13 @@
+{
+  "name": "lego-tech-fest-2025",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Nothing to build'",
+    "start": "echo 'Run locally with netlify dev'"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^5.3.0",
+    "node-fetch": "^3.3.2"
+  }
+}
