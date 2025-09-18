@@ -113,7 +113,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
 
     <button class="floating-back" id="backToIndex" title="Volver al inicio">←</button>
 
-    <!-- SCENE 1: WEBCAM -->
     <section id="sceneWebcam" class="scene active center-col">
       <div id="webcamPreview" aria-label="Vista previa de la cámara">
         <video id="webcamVideo" autoplay playsinline muted></video>
@@ -126,7 +125,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       <p class="muted">Presioná "Tomar foto". El contador aparecerá y te avisará cuándo.</p>
     </section>
 
-    <!-- SCENE 2: PROCESSING -->
     <section id="sceneProcessing" class="scene center-col">
       <div class="processing-area">
         <div class="processing-box" aria-hidden="true">
@@ -142,7 +140,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       </div>
     </section>
 
-    <!-- SCENE 3: PREVIEW + NAME -->
     <section id="scenePreview" class="scene center-col">
       <img id="legoPreview" alt="Previsualización Lego" />
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;">
@@ -155,7 +152,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       </div>
     </section>
 
-    <!-- SCENE 4: FINAL -->
     <section id="sceneFinal" class="scene center-col">
       <h2>¡Listo! Tu Lego está guardado.</h2>
       <img id="finalPreview" alt="Resultado final" />
@@ -167,11 +163,8 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
 <footer><p>Tech Fest 2025. Creado por Juan Bautista Fabris Rico y Francisco Farina</p></footer>
 
 <script>
-// (El JS es la misma lógica robusta que ya revisamos: redimensiona, base64, reintentos y espera data_url)
-// Para ahorrar espacio aquí uso la lógica completa que revisamos — está intacta y no contiene nombres de ejemplo.
-// Incluyo la versión final exacta que envié antes (IA-only, sin local fallback).
+/* Final IA-only client. UX identical to index.html. Robust: compress, base64, retries, timeouts, parse flexible. */
 
-// --------- UI elements (IDs match the original CSS/markup) ----------
 const scenes = {
   webcam: document.getElementById('sceneWebcam'),
   processing: document.getElementById('sceneProcessing'),
@@ -198,27 +191,26 @@ const finalPreview = document.getElementById('finalPreview');
 const btnFinal = document.getElementById('btnFinal');
 const processingText = document.getElementById('processingText');
 
-let stream=null, capturedBlob=null, legoBlob=null, legoDataUrl=null, counting=false;
+let stream=null, capturedBlob=null, legoDataUrl=null, counting=false;
 
-// START WEBCAM
 async function startWebcam(){
   try{
     stream = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720},audio:false});
-    video.srcObject=stream;
-  }catch(err){ alert('No se pudo acceder a la cámara: '+err.message); }
+    video.srcObject = stream;
+  }catch(err){
+    console.error('startWebcam error:', err);
+    alert('No se pudo acceder a la cámara: ' + (err?.message || err));
+  }
 }
 startWebcam();
 
-// COUNTER ANIMATION
 function showCounter(val){ counter.textContent=val; counter.classList.add('counter-show'); counter.classList.remove('hidden'); }
 function hideCounter(){ counter.classList.remove('counter-show'); setTimeout(()=>counter.classList.add('hidden'),160); }
-function cameraShake(){ const c=document.getElementById('card'); c.style.transition='transform .2s'; c.style.transform='translateX(-6px)'; setTimeout(()=>c.style.transform='translateX(6px)',80); setTimeout(()=>c.style.transform='translateX(-3px)',160); setTimeout(()=>c.style.transform='translateX(0)',240); }
+function cameraShake(){ const c=document.getElementById('card'); if(!c) return; c.style.transition='transform .2s'; c.style.transform='translateX(-6px)'; setTimeout(()=>c.style.transform='translateX(6px)',80); setTimeout(()=>c.style.transform='translateX(-3px)',160); setTimeout(()=>c.style.transform='translateX(0)',240); }
 
-// CAPTURE PHOTO
 btnCapture.addEventListener('click', ()=>{
   if(counting) return;
   counting=true; btnCapture.disabled=true; btnCapture.style.opacity=0;
-
   let t=5; showCounter(t);
   const tick = setInterval(()=>{
     t--;
@@ -235,15 +227,14 @@ btnCapture.addEventListener('click', ()=>{
   },1000);
 });
 
-// CAPTURE FRAME
 async function captureFrame(){
   try{
-    const canvas=document.createElement('canvas'); canvas.width=video.videoWidth||1280; canvas.height=video.videoHeight||720;
+    const canvas=document.createElement('canvas');
+    canvas.width=video.videoWidth||1280; canvas.height=video.videoHeight||720;
     const ctx=canvas.getContext('2d'); ctx.translate(canvas.width,0); ctx.scale(-1,1); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    const originalBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-    if(!originalBlob){ alert('Error capturando foto'); btnCapture.disabled=false; btnCapture.style.opacity=1; counting=false; return; }
+    const originalBlob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+    if(!originalBlob){ throw new Error('Error capturando foto'); }
 
-    // Resize & compress to reduce payload
     const processedBlob = await resizeAndCompressBlob(originalBlob, { maxWidth: 1024, quality: 0.82 });
     capturedBlob = processedBlob;
     showScene('processing');
@@ -262,22 +253,23 @@ async function captureFrame(){
       btnCapture.disabled=false; btnCapture.style.opacity=1;
     }
     counting=false;
-  }catch(e){ console.error('captureFrame error', e); alert('Error al capturar: '+(e.message||e)); counting=false; btnCapture.disabled=false; btnCapture.style.opacity=1; }
+  } catch (e){
+    console.error('captureFrame error', e);
+    alert('Error al capturar: ' + (e?.message || e));
+    counting=false; btnCapture.disabled=false; btnCapture.style.opacity=1;
+  }
 }
 
-// IMAGE PROCESSING HELPERS
 async function resizeAndCompressBlob(blob, { maxWidth = 1024, quality = 0.82 } = {}) {
   const bitmap = await createImageBitmap(blob);
-  let targetWidth = bitmap.width;
-  let targetHeight = bitmap.height;
+  let targetWidth = bitmap.width, targetHeight = bitmap.height;
   if (bitmap.width > maxWidth) {
     const scale = maxWidth / bitmap.width;
     targetWidth = Math.round(bitmap.width * scale);
     targetHeight = Math.round(bitmap.height * scale);
   }
   const c = document.createElement('canvas');
-  c.width = targetWidth;
-  c.height = targetHeight;
+  c.width = targetWidth; c.height = targetHeight;
   const ctx = c.getContext('2d');
   ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
   const outBlob = await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
@@ -304,7 +296,6 @@ async function blobToBase64(blob){
   });
 }
 
-// POST TO SERVER (retries + timeout)
 async function postToServer(base64, maxAttempts = 3){
   const url = '/.netlify/functions/generate-lego';
   let lastErr = null;
@@ -343,7 +334,6 @@ async function postToServer(base64, maxAttempts = 3){
   throw lastErr;
 }
 
-// MAIN: call serverless and handle data_url/result_url
 async function generateLegoOnBackend(photoBlob){
   try{
     const base64 = await blobToBase64(photoBlob);
@@ -370,7 +360,7 @@ async function generateLegoOnBackend(photoBlob){
         return true;
       } catch (err) {
         console.error('Failed to fetch result_url client-side (CORS likely):', err);
-        throw new Error('No se pudo descargar la imagen generada desde el servidor (posible CORS). Pega el JSON de respuesta del servidor en la conversación para que lo revise.');
+        throw new Error('No se pudo descargar la imagen generada desde el servidor (posible CORS). Copiá aquí el JSON de respuesta del servidor para que lo revise.');
       }
     }
     console.error('Unexpected server response:', serverResp);
@@ -381,7 +371,6 @@ async function generateLegoOnBackend(photoBlob){
   }
 }
 
-// SAVE IMAGE
 btnSave.addEventListener('click', ()=>{
   if(!legoDataUrl){ alert('No hay imagen para guardar'); return; }
   let name = (nameInput.value || '').trim();
@@ -397,22 +386,17 @@ btnSave.addEventListener('click', ()=>{
   showScene('final');
 });
 
-// enable/disable save based on name input
 nameInput.addEventListener('input', ()=>{ btnSave.disabled = !nameInput.value.trim(); });
 
-// RETAKE
 btnRetake.addEventListener('click', ()=>{
   if(legoDataUrl) legoDataUrl = null;
-  if(legoBlob) { URL.revokeObjectURL(legoBlob); legoBlob = null; }
-  capturedBlob=null;
+  if(capturedBlob) { capturedBlob = null; }
   btnCapture.disabled=false; btnCapture.style.opacity=1;
   showScene('webcam');
 });
 
-// FINAL
 btnFinal.addEventListener('click',()=>{ const c=document.getElementById('card'); c.style.transition='transform .5s ease, opacity .45s ease'; c.style.transform='scale(.92) translateY(-24px) rotate(-2deg)'; c.style.opacity=0; setTimeout(()=>window.location.href='index.html',520); });
 
-// CONFETTI
 function startConfetti(){
   const count=48;
   for(let i=0;i<count;i++){
