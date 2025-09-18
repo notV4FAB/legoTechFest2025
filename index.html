@@ -202,33 +202,26 @@ const buscar = document.getElementById('buscar');
 function hideElement(el){ el.style.opacity = 0; el.style.transform = 'scale(.94)'; setTimeout(()=>el.style.display='none', 500); }
 function showElement(el, display='block'){ el.style.display = display; setTimeout(()=>{ el.style.opacity = 1; el.style.transform = 'scale(1)'; }, 30); }
 
-/* ---------- Transitions: home -> section (Oscar-worthy) ---------- */
 function startTransition(sectionId){
-  // animate home out fully, then show the section
   home.style.transition = 'transform .8s cubic-bezier(.2,.9,.3,1), opacity .6s';
   home.style.opacity = 0;
   home.style.transform = 'translateY(-18px) scale(.92) rotate(-0.6deg)';
-  // subtle sparkle tilt
   setTimeout(()=>{
     home.style.display = 'none';
-    // show target
     if(sectionId === 'crear'){ window.location.href = "lego.html"; }
     if(sectionId === 'buscar'){ showSection(buscar); focusSearch(); }
   }, 520);
 }
 
 function showSection(sectionEl){
-  // hide all sections
   [crear, buscar].forEach(s=>{ s.style.display='none'; s.style.opacity=0; s.style.transform='scale(.96)'; });
   sectionEl.style.display = 'block';
   sectionEl.style.opacity = 0;
   sectionEl.style.transform = 'scale(.96)';
-  // small delay to allow repaint
   setTimeout(()=>{ sectionEl.classList.add('active'); sectionEl.style.opacity = 1; sectionEl.style.transform = 'scale(1)'; sectionEl.removeAttribute('aria-hidden'); }, 60);
 }
 
 function goHome(){
-  // hide any open sections fully
   [crear, buscar].forEach(s=>{
     s.classList.remove('active');
     s.style.opacity = 0;
@@ -236,32 +229,20 @@ function goHome(){
     s.style.display = 'none';
     s.setAttribute('aria-hidden','true');
   });
-  // show home again
   home.style.display = 'flex';
   home.style.opacity = 0;
   home.style.transform = 'translateY(6px) scale(.98)';
   setTimeout(()=>{ home.style.opacity = 1; home.style.transform = 'translateY(0) scale(1)'; }, 30);
-
-  // reset search UI
   resetSearchUI();
 }
 
 /* ---------- SEARCH / EXISTENCE CHECK ---------- */
 
-/*
- Strategy:
- 1) Build a local relative URL: "createdimg/<name>.png"
- 2) Try to detect existence by loading the image via JS Image() (onload / onerror).
-    - This avoids CORS problems with HEAD.
- 3) If local fails, try the GitHub raw URL as fallback.
- 4) Report success URL (the first that works) or not found.
-*/
-function buildLocalUrl(name){ return `createdimg/${encodeURIComponent(name)}.png`; }
+function buildLocalUrl(name){ return `/createdimg/${encodeURIComponent(name)}.png`; }
 function buildGitHubRawUrl(name){
   return `https://raw.githubusercontent.com/notV4FAB/legoTechFest2025/main/createdimg/${encodeURIComponent(name)}.png`;
 }
 
-// tries to load an image, resolves true if success, false if error (with timeout).
 function tryLoadImage(url, timeoutMs = 7000){
   return new Promise((resolve) => {
     const img = new Image();
@@ -270,7 +251,6 @@ function tryLoadImage(url, timeoutMs = 7000){
 
     img.onload = () => { if(done) return; done = true; clearTimeout(t); resolve(true); };
     img.onerror = () => { if(done) return; done = true; clearTimeout(t); resolve(false); };
-    // Important: set src last
     img.src = url + (url.includes('?') ? '&' : '?') + 'cachebust=' + Date.now();
   });
 }
@@ -315,7 +295,6 @@ function setSearching(on){
 }
 
 function resetSearchUI(){
-  // show searchPart, hide resPart
   searchPart.style.display = 'flex';
   resPart.classList.add('hidden'); resPart.style.display='none';
   msg.textContent = 'Escribí el nombre y tocá Buscar.';
@@ -326,12 +305,16 @@ function resetSearchUI(){
 
 /* ---------- Main search flow ---------- */
 async function onSearch(){
-  const rawName = inputName.value.trim();
-  if(!rawName){ msg.textContent = 'Ingresá un nombre válido.'; return; }
+  const rawInput = inputName.value.trim();
+  if(!rawInput){ msg.textContent = 'Ingresá un nombre válido.'; return; }
+
+  // normalize: remove extension if provided
+  const name = rawInput.replace(/\.png$/i, '').trim();
+  if(!name){ msg.textContent = 'Ingresá un nombre válido.'; return; }
 
   setSearching(true);
   try{
-    const found = await findImageByName(rawName);
+    const found = await findImageByName(name);
     setSearching(false);
 
     if(!found){
@@ -339,17 +322,14 @@ async function onSearch(){
       return;
     }
 
-    // show results
     currentFoundUrl = found;
-    currentFoundName = rawName + '.png';
+    currentFoundName = name + '.png';
     fileNameSpan.textContent = currentFoundName;
 
-    // hide search, show resPart
     searchPart.style.display = 'none';
     resPart.style.display = 'block';
     resPart.classList.remove('hidden');
 
-    // adjust layout for mobile
     const resultWrap = document.getElementById('resultWrap');
     if(isMobile){
       resultWrap.classList.add('mobile');
@@ -357,7 +337,6 @@ async function onSearch(){
       resultWrap.classList.remove('mobile');
     }
 
-    // set image src (use URL directly)
     foundImg.src = found;
     foundImg.alt = currentFoundName;
     msg.textContent = 'Imagen encontrada ✓';
@@ -369,27 +348,23 @@ async function onSearch(){
   }
 }
 
-/* ---------- Download logic (iOS share fallback, fetch+blob otherwise) ---------- */
+/* ---------- Download logic ---------- */
 async function downloadFound(){
   if(!currentFoundUrl || !currentFoundName) return alert('No hay imagen seleccionada.');
 
-  // show spinner
   spinnerLarge.classList.remove('hidden');
   btnDownload.disabled = true;
   btnDownload.style.opacity = 0.6;
 
   const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   try{
-    // prefer navigator.share if Apple + capable
     if(isApple && navigator.canShare && navigator.canShare({ files: [ new File([""], currentFoundName) ] })){
-      // fetch blob then share
       const r = await fetch(currentFoundUrl);
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const blob = await r.blob();
       const file = new File([blob], currentFoundName, { type: blob.type });
       await navigator.share({ files:[file], title: currentFoundName });
     } else {
-      // general case: fetch blob + createObjectURL + download
       const r = await fetch(currentFoundUrl);
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const blob = await r.blob();
@@ -403,7 +378,6 @@ async function downloadFound(){
     }
   }catch(err){
     console.warn('Descarga/Share falló, abriendo en nueva pestaña como fallback:', err);
-    // fallback open in new tab
     window.open(currentFoundUrl,'_blank');
   } finally{
     spinnerLarge.classList.add('hidden');
@@ -412,16 +386,9 @@ async function downloadFound(){
   }
 }
 
-/* ---------- Small UX niceties ---------- */
 inputName.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); onSearch(); } });
 
-/* On load: ensure home visible, sections hidden */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // ensure initial states
-  home.style.display = 'flex'; home.style.opacity = 1; home.style.transform = 'scale(1)';
-  crear.style.display = 'none'; buscar.style.display = 'none';
-  resetSearchUI();
-});
+document.addEventListener('DOMContentLoaded', ()=>{ home.style.display = 'flex'; home.style.opacity = 1; home.style.transform = 'scale(1)'; crear.style.display = 'none'; buscar.style.display = 'none'; resetSearchUI(); });
 </script>
 </body>
 </html>
