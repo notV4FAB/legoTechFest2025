@@ -315,3 +315,119 @@ async function postToServer(base64, maxAttempts = 3){
       const t = setTimeout(()=>controller.abort(), 60_000);
       const resp = await fetch(url, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64 }),
+        signal: controller.signal
+      });
+      clearTimeout(t);
+      const text = await resp.text().catch(()=>null);
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch(e){ json = null; }
+      if(!resp.ok){
+        console.warn('[client] server non-ok', resp.status, text);
+        lastErr = {status: resp.status, text};
+        if(resp.status >= 500 || resp.status === 429){
+          if(attempt < maxAttempts) await new Promise(r=>setTimeout(r, 1000 * attempt));
+          continue;
+        } else {
+          throw new Error('Server error: ' + (text || resp.status));
+        }
+      }
+      return json || {};
+    } catch (e){
+      lastErr = e;
+      console.error('[client] post attempt failed', attempt, e);
+      if(attempt < maxAttempts) await new Promise(r=>setTimeout(r, 1000 * attempt));
+    }
+  }
+  throw lastErr;
+}
+
+// MAIN: call serverless and handle data_url/result_url
+async function generateLegoOnBackend(photoBlob){
+  try{
+    const base64 = await blobToBase64(photoBlob);
+    const serverResp = await postToServer(base64, 3);
+    if(serverResp && serverResp.data_url){
+      legoDataUrl = serverResp.data_url;
+      processingText.textContent = 'Generación IA completada';
+      return true;
+    }
+    if(serverResp && serverResp.result_url){
+      processingText.textContent = 'Descargando imagen generada...';
+      try{
+        const r2 = await fetch(serverResp.result_url);
+        if(!r2.ok) throw new Error('HTTP ' + r2.status);
+        const blob = await r2.blob();
+        const dataUrl = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.onerror = (e) => rej(e || new Error('FileReader error'));
+          reader.readAsDataURL(blob);
+        });
+        legoDataUrl = dataUrl;
+        processingText.textContent = 'Generación IA completada';
+        return true;
+      } catch (err) {
+        console.error('Failed to fetch result_url client-side (CORS likely):', err);
+        throw new Error('No se pudo descargar la imagen generada desde el servidor (posible CORS). Pega el JSON de respuesta del servidor en la conversación para que lo revise.');
+      }
+    }
+    console.error('Unexpected server response:', serverResp);
+    throw new Error('Respuesta inesperada del servidor: ' + JSON.stringify(serverResp).slice(0,1000));
+  } catch (err){
+    console.error('generateLegoOnBackend error:', err);
+    throw err;
+  }
+}
+
+// SAVE IMAGE
+btnSave.addEventListener('click', ()=>{
+  if(!legoDataUrl){ alert('No hay imagen para guardar'); return; }
+  let name = (nameInput.value || '').trim();
+  if(!name){ alert('Ingresá un nombre para tu archivo'); nameInput.focus(); return; }
+  name = name.replace(/[^a-z0-9_\-]/gi,'_').toLowerCase();
+  const link=document.createElement('a'); link.href=legoDataUrl; link.download=name+'.png';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  finalPreview.src = legoDataUrl;
+  cameraShake();
+  startConfetti();
+  showScene('final');
+});
+
+// enable/disable save based on name input
+nameInput.addEventListener('input', ()=>{ btnSave.disabled = !nameInput.value.trim(); });
+
+// RETAKE
+btnRetake.addEventListener('click', ()=>{
+  if(legoDataUrl) legoDataUrl = null;
+  if(legoBlob) { URL.revokeObjectURL(legoBlob); legoBlob = null; }
+  capturedBlob=null;
+  btnCapture.disabled=false; btnCapture.style.opacity=1;
+  showScene('webcam');
+});
+
+// FINAL
+btnFinal.addEventListener('click',()=>{ const c=document.getElementById('card'); c.style.transition='transform .5s ease, opacity .45s ease'; c.style.transform='scale(.92) translateY(-24px) rotate(-2deg)'; c.style.opacity=0; setTimeout(()=>window.location.href='index.html',520); });
+
+// CONFETTI
+function startConfetti(){
+  const count=48;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div'); el.className='confetti';
+    el.style.left=(10+Math.random()*80)+'%'; el.style.top=(-5-Math.random()*10)+'vh';
+    const w=8+Math.random()*12; el.style.width=w+'px'; el.style.height=(w*0.6)+'px';
+    el.style.background=`hsl(${Math.random()*360},80%,60%)`;
+    el.style.transform=`rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    const anim=el.animate([{transform:`translateY(0) rotate(${Math.random()*360}deg)`,opacity:1},
+                           {transform:`translateY(80vh) rotate(${Math.random()*900}deg)`,opacity:0.1}],
+                           {duration:1600+Math.random()*900,easing:'cubic-bezier(.2,.6,.3,1)'});
+    anim.onfinish=()=>el.remove();
+  }
+}
+</script>
+</body>
+</html>
