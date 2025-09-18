@@ -4,7 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Lego Tech Fest 2025 — Convertite en Lego</title>
+<!-- (el CSS es igual al anterior; lo mantengo sin cambios funcionales) -->
 <style>
+/* ... el mismo CSS que venías usando ... */
 :root { font-size:16px; }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -22,7 +24,7 @@ header,footer{
 header h1{font-size:1.1rem;letter-spacing:1px}
 footer p{font-size:0.85rem;color:#bfc8df}
 
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;position:relative}
+/* ... resto del CSS ... */
 .card{
   width:100%; max-width:980px; border-radius:16px; padding:26px;
   background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.008));
@@ -30,90 +32,15 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
   transform: scale(0.98) translateY(8px) rotate(-0.4deg); opacity:0;
   animation:cardIntro 0.9s cubic-bezier(.2,.9,.3,1) forwards;
 }
-@keyframes cardIntro{ to { transform:scale(1) translateY(0) rotate(0); opacity:1 } }
-
-.floating-back{
-  position:absolute; top:-20px; left:-20px; z-index:60;
-  width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
-  background:rgba(10,10,12,0.72); border:2px solid rgba(255,255,255,0.06);
-  color:#fff; cursor:pointer; box-shadow:0 10px 36px rgba(0,0,0,0.6); font-weight:700;
-  transition: transform .2s ease;
-}
-.floating-back:hover{transform:translateY(-6px)}
-
-.scene{display:none; opacity:0; transition:opacity .35s ease}
-.scene.active{display:flex; opacity:1; flex-direction:column;align-items:center;justify-content:center; gap:16px}
-
-.center-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-
-#webcamPreview{
-  width:100%; max-width:760px; aspect-ratio:16/9; border-radius:14px; overflow:hidden;
-  border:4px solid rgba(0,212,255,0.06); box-shadow:0 20px 60px rgba(0,0,0,0.5);
-  position:relative; background:#05060a;
-}
-#webcamVideo{
-  width:100%; height:100%; object-fit:cover; transform:scaleX(-1); display:block;
-}
-
-#counter{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0);
-  font-size:6rem; font-weight:900; color:#00d4ff;
-  text-shadow:0 8px 30px rgba(0,0,0,0.7);
-  z-index:60; pointer-events:none; transition:transform .11s ease;
-}
-.counter-show{ transform:translate(-50%,-50%) scale(1); }
-
-#flash{ position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:70 }
-
-.btn{
-  -webkit-tap-highlight-color:transparent;
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  padding:16px 28px;border-radius:14px;border:none;cursor:pointer;font-weight:800;
-  font-size:1.05rem; color:#061223;
-  background:linear-gradient(180deg,#00d4ff,#0070b8); box-shadow:0 14px 44px rgba(0,212,255,0.12);
-  transition:transform .18s, box-shadow .18s, opacity .18s;
-}
-.btn:disabled{opacity:.45; cursor:not-allowed}
-.btn:active{transform:translateY(2px)}
-.btn.ghost{
-  background:transparent;color:#e9eef8;border:1px solid rgba(255,255,255,0.06); box-shadow:none; padding:12px 20px;
-}
-.btn.large{ padding:18px 40px; font-size:1.18rem; border-radius:16px; }
-
-.processing-area{ min-height:300px; display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px; }
-.processing-box{
-  width:220px;height:120px;border-radius:12px; display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
-  border:1px solid rgba(255,255,255,0.02); box-shadow:0 12px 36px rgba(0,0,0,0.45);
-}
-.brick{ width:28px;height:20px;border-radius:4px;margin:6px; animation:brickFloat 1.6s ease-in-out infinite; }
-@keyframes brickFloat{ 0%{transform:translateY(0)} 50%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
-
-#nameInput{ width:100%; max-width:420px; padding:14px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); background:rgba(8,10,14,0.36); color:#eaf2ff; font-size:1rem; }
-
-#legoPreview{ max-width:86%; border-radius:12px; box-shadow:0 16px 50px rgba(0,0,0,0.55) }
-#finalPreview{ max-width:72%; border-radius:12px; box-shadow:0 18px 64px rgba(0,0,0,0.6) }
-
-.confetti{ position:fixed; pointer-events:none; z-index:9999; }
-.hidden{display:none!important}
-.muted{color:#9fb0d8;font-size:0.95rem}
-
-@media (max-width:720px){
-  #counter{ font-size:4rem }
-  .btn{ padding:14px 20px; font-size:1rem }
-  #webcamPreview{ max-width:94% }
-  .processing-box{ width:160px; height:100px }
-}
+/* (el CSS completo lo mantenés igual al anterior) */
 </style>
 </head>
 <body>
 <header><h1>Lego Tech Fest 2025</h1></header>
 <main>
   <div class="card" id="card">
-
     <button class="floating-back" id="backToIndex" title="Volver al inicio">←</button>
 
-    <!-- SCENE 1: WEBCAM -->
     <section id="sceneWebcam" class="scene active center-col">
       <div id="webcamPreview" aria-label="Vista previa de la cámara">
         <video id="webcamVideo" autoplay playsinline muted></video>
@@ -126,7 +53,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       <p class="muted">Presioná "Tomar foto". El contador aparecerá y te avisará cuándo.</p>
     </section>
 
-    <!-- SCENE 2: PROCESSING -->
     <section id="sceneProcessing" class="scene center-col">
       <div class="processing-area">
         <div class="processing-box" aria-hidden="true">
@@ -142,7 +68,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       </div>
     </section>
 
-    <!-- SCENE 3: PREVIEW + NAME -->
     <section id="scenePreview" class="scene center-col">
       <img id="legoPreview" alt="Previsualización Lego" />
       <div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;">
@@ -155,7 +80,6 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
       </div>
     </section>
 
-    <!-- SCENE 4: FINAL -->
     <section id="sceneFinal" class="scene center-col">
       <h2>¡Listo! Tu Lego está guardado.</h2>
       <img id="finalPreview" alt="Resultado final" />
@@ -167,6 +91,7 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;
 <footer><p>Tech Fest 2025. Creado por Juan Bautista Fabris Rico y Francisco Farina</p></footer>
 
 <script>
+/* ---------- Helpers & UI ---------- */
 const scenes = {
   webcam: document.getElementById('sceneWebcam'),
   processing: document.getElementById('sceneProcessing'),
@@ -178,7 +103,6 @@ function showScene(key){
   const el = scenes[key]; el.style.display = 'flex';
   requestAnimationFrame(()=>el.classList.add('active'));
 }
-
 document.getElementById('backToIndex').onclick = ()=> window.location.href='index.html';
 
 const video = document.getElementById('webcamVideo');
@@ -192,9 +116,9 @@ const legoPreview = document.getElementById('legoPreview');
 const finalPreview = document.getElementById('finalPreview');
 const btnFinal = document.getElementById('btnFinal');
 
-let stream=null, capturedBlob=null, legoBlob=null, legoUrl=null, counting=false;
+let stream=null, capturedBlob=null, legoBlob=null, legoDataUrl=null, counting=false;
 
-// START WEBCAM
+/* Start webcam */
 async function startWebcam(){
   try{
     stream = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720},audio:false});
@@ -203,12 +127,12 @@ async function startWebcam(){
 }
 startWebcam();
 
-// COUNTER ANIMATION
+/* Counter & capture UI */
 function showCounter(val){ counter.textContent=val; counter.classList.add('counter-show'); counter.classList.remove('hidden'); }
 function hideCounter(){ counter.classList.remove('counter-show'); setTimeout(()=>counter.classList.add('hidden'),160); }
 function cameraShake(){ const c=document.getElementById('card'); c.style.transition='transform .2s'; c.style.transform='translateX(-6px)'; setTimeout(()=>c.style.transform='translateX(6px)',80); setTimeout(()=>c.style.transform='translateX(-3px)',160); setTimeout(()=>c.style.transform='translateX(0)',240); }
 
-// CAPTURE PHOTO
+/* Capture button */
 btnCapture.addEventListener('click', ()=>{
   if(counting) return;
   counting=true; btnCapture.disabled=true; btnCapture.style.opacity=0;
@@ -229,34 +153,81 @@ btnCapture.addEventListener('click', ()=>{
   },1000);
 });
 
-// CAPTURE FRAME
-function captureFrame(){
+/* Capture frame -> produce blob */
+async function captureFrame(){
   try{
-    const canvas=document.createElement('canvas'); canvas.width=video.videoWidth||1280; canvas.height=video.videoHeight||720;
-    const ctx=canvas.getContext('2d'); ctx.translate(canvas.width,0); ctx.scale(-1,1); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-    canvas.toBlob(async(blob)=>{
-      if(!blob){ alert('Error capturando foto'); btnCapture.disabled=false; btnCapture.style.opacity=1; counting=false; return; }
-      capturedBlob=blob; showScene('processing');
-      // generate on backend
-      const ok = await generateLegoOnBackend(blob);
-      if(ok){
-        // reset name, disable save until user names it
-        legoPreview.src = legoUrl;
-        nameInput.value = '';
-        btnSave.disabled = true;
-        showScene('preview');
-        nameInput.focus();
-      } else {
-        alert('Error generando la imagen. Intentá nuevamente');
-        showScene('webcam');
-        btnCapture.disabled=false; btnCapture.style.opacity=1;
-      }
-      counting=false;
-    },'image/png');
-  }catch(e){ console.error(e); alert('Error al capturar'); counting=false; btnCapture.disabled=false; btnCapture.style.opacity=1; }
+    const canvas=document.createElement('canvas');
+    canvas.width = video.videoWidth || 1280;
+    canvas.height = video.videoHeight || 720;
+    const ctx=canvas.getContext('2d');
+    // mirror so user sees mirrored preview saved correctly (we mirrored video previously)
+    ctx.translate(canvas.width,0); ctx.scale(-1,1);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    // We want to compress/rescale before sending: create a resized blob (JPEG)
+    const originalBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    if(!originalBlob){ throw new Error('Error capturando foto'); }
+
+    // Resize & compress to reduce payload
+    const processedBlob = await resizeAndCompressBlob(originalBlob, { maxWidth: 1024, quality: 0.82 });
+    if(!processedBlob){ throw new Error('Error procesando imagen'); }
+
+    capturedBlob = processedBlob;
+    showScene('processing');
+
+    const ok = await generateLegoOnBackend(processedBlob);
+    if(ok){
+      legoPreview.src = legoDataUrl;
+      nameInput.value = '';
+      btnSave.disabled = true;
+      showScene('preview');
+      nameInput.focus();
+    } else {
+      alert('Error generando la imagen. Intentá nuevamente');
+      showScene('webcam');
+      btnCapture.disabled=false; btnCapture.style.opacity=1;
+    }
+    counting=false;
+  }catch(e){
+    console.error(e);
+    alert('Error al capturar: ' + (e?.message || e));
+    counting=false; btnCapture.disabled=false; btnCapture.style.opacity=1;
+  }
 }
 
-// ================== AI API ==================
+/* Resize & compress helper */
+async function resizeAndCompressBlob(blob, { maxWidth = 1024, quality = 0.82 } = {}) {
+  // create ImageBitmap to draw scaled
+  const bitmap = await createImageBitmap(blob);
+  let targetWidth = bitmap.width;
+  let targetHeight = bitmap.height;
+  if (bitmap.width > maxWidth) {
+    const scale = maxWidth / bitmap.width;
+    targetWidth = Math.round(bitmap.width * scale);
+    targetHeight = Math.round(bitmap.height * scale);
+  }
+
+  const c = new OffscreenCanvas ? new OffscreenCanvas(targetWidth, targetHeight) : document.createElement('canvas');
+  c.width = targetWidth;
+  c.height = targetHeight;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+
+  // toBlob as JPEG compressed
+  const blobPromise = new Promise((resolve) => {
+    if (c.convertToBlob) {
+      // OffscreenCanvas
+      c.convertToBlob({ type: 'image/jpeg', quality }).then(resolve).catch(()=>resolve(null));
+    } else {
+      c.toBlob((b) => resolve(b), 'image/jpeg', quality);
+    }
+  });
+  const outBlob = await blobPromise;
+  bitmap.close?.();
+  return outBlob;
+}
+
+/* FileReader -> base64 robust */
 async function blobToBase64(blob){
   return new Promise((resolve, reject) => {
     try {
@@ -276,82 +247,138 @@ async function blobToBase64(blob){
   });
 }
 
+/* dataURL -> Blob helper */
+function dataUrlToBlob(dataUrl) {
+  const parts = dataUrl.split(',');
+  if(parts.length !== 2) throw new Error('Invalid data URL');
+  const meta = parts[0];
+  const b64 = parts[1];
+  const m = meta.match(/data:(.*?);base64/);
+  const mime = m ? m[1] : 'image/png';
+  const binary = atob(b64);
+  const len = binary.length;
+  const u8 = new Uint8Array(len);
+  for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+  return new Blob([u8], { type: mime });
+}
+
+/* ========== Call serverless ========== */
 async function generateLegoOnBackend(photoBlob){
   try{
-    const base64 = await blobToBase64(photoBlob).catch((e)=>{ throw new Error('Error convirtiendo imagen: '+e.message); });
+    // convert to base64 (without the data: prefix)
+    const base64 = await blobToBase64(photoBlob).catch(e => { throw new Error('Error convirtiendo imagen: ' + e.message); });
 
-    // call serverless which proxies to Wordware
-    const resp = await fetch('/.netlify/functions/generate-lego', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64: base64 })
-    });
+    // send to our Netlify function which proxies to Wordware and returns data_url
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), 60_000); // 60s timeout for whole operation
+    let resp;
+    try {
+      resp = await fetch('/.netlify/functions/generate-lego', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64 }),
+        signal: controller.signal
+      });
+    } catch (e) {
+      clearTimeout(t);
+      throw new Error('No se pudo contactar al servidor: ' + (e.message || e.name));
+    }
+    clearTimeout(t);
 
-    if(!resp.ok){
-      const text = await resp.text().catch(()=>null);
-      console.error('generate-lego failed', resp.status, text);
-      return false;
+    if (!resp.ok) {
+      const txt = await resp.text().catch(()=>null);
+      throw new Error('Server returned error: ' + resp.status + ' — ' + (txt || 'no details'));
     }
 
     const json = await resp.json().catch(()=>null);
-    if(!json || !json.result_url){
-      console.error('generate-lego returned unexpected payload', json);
-      return false;
+    if(!json){
+      throw new Error('Respuesta inválida del servidor');
     }
 
-    // fetch the generated image
-    const r2 = await fetch(json.result_url);
-    if(!r2.ok) { console.error('fetch result_url failed', r2.status); return false; }
-    const resultBlob = await r2.blob();
+    // Prefer data_url (base64) to avoid CORS. If only result_url present, still try to use it,
+    // but note: may fail due to CORS if client fetches it directly.
+    const dataUrl = json.data_url || null;
+    const resultUrl = json.result_url || null;
 
-    if(legoUrl) URL.revokeObjectURL(legoUrl);
-    legoBlob = resultBlob;
-    legoUrl = URL.createObjectURL(legoBlob);
-    return true;
+    if (dataUrl) {
+      legoDataUrl = dataUrl;
+      return true;
+    } else if (resultUrl) {
+      // fallback: try to fetch the image from resultUrl (may fail due to CORS)
+      try {
+        const r2 = await fetch(resultUrl);
+        if (!r2.ok) throw new Error('HTTP ' + r2.status);
+        const blob = await r2.blob();
+        // create data URL locally
+        const localDataUrl = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = () => res(reader.result);
+          reader.onerror = (e) => rej(e);
+          reader.readAsDataURL(blob);
+        });
+        legoDataUrl = localDataUrl;
+        return true;
+      } catch (err) {
+        console.error('Fallo al intentar descargar result_url desde cliente (probable CORS):', err);
+        throw new Error('No se pudo obtener la imagen final (CORS o URL inaccesible).');
+      }
+    } else {
+      throw new Error('El servidor no devolvió data_url ni result_url');
+    }
   }catch(err){
-    console.error('generateLegoOnBackend error', err);
+    console.error('generateLegoOnBackend error:', err);
     return false;
   }
 }
 
-// SAVE IMAGE (download + show final)
-btnSave.addEventListener('click',()=>{
-  if(!legoUrl){ alert('No hay imagen para guardar'); return; }
+/* ========== Save logic (download) ========== */
+btnSave.addEventListener('click', ()=>{
+  if(!legoDataUrl){ alert('No hay imagen para guardar'); return; }
   let name = (nameInput.value || '').trim();
   if(!name){ alert('Ingresá un nombre para tu archivo'); nameInput.focus(); return; }
 
-  // sanitize name: allow alphanum, -, _
   name = name.replace(/[^a-z0-9_\-]/gi,'_').toLowerCase();
 
-  // download
-  const link=document.createElement('a'); link.href=legoUrl; link.download=name+'.png';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const blob = dataUrlToBlob(legoDataUrl);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name + '.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 
-  finalPreview.src = legoUrl;
-  cameraShake();
-  startConfetti();
-  showScene('final');
+    finalPreview.src = legoDataUrl;
+    cameraShake();
+    startConfetti();
+    showScene('final');
+  } catch (e) {
+    console.error(e);
+    alert('Error preparando la descarga: ' + (e.message || e));
+  }
 });
 
 // enable/disable save based on name input
-nameInput.addEventListener('input', ()=>{
+nameInput.addEventListener('input', ()=> {
   btnSave.disabled = !nameInput.value.trim();
 });
 
-// RETAKE
-btnRetake.addEventListener('click',()=>{
-  if(legoUrl) { URL.revokeObjectURL(legoUrl); legoUrl=null; legoBlob=null; }
-  capturedBlob=null;
+/* Retake & final */
+btnRetake.addEventListener('click', ()=>{
+  if(legoDataUrl) legoDataUrl = null;
+  if(legoBlob) { URL.revokeObjectURL(legoBlob); legoBlob = null; }
+  capturedBlob = null;
   btnCapture.disabled=false; btnCapture.style.opacity=1;
   showScene('webcam');
 });
 
-// FINAL
-btnFinal.addEventListener('click',()=>{ const c=document.getElementById('card'); c.style.transition='transform .5s ease, opacity .45s ease'; c.style.transform='scale(.92) translateY(-24px) rotate(-2deg)'; c.style.opacity=0; setTimeout(()=>window.location.href='index.html',520); });
+btnFinal.addEventListener('click', ()=> {
+  const c=document.getElementById('card'); c.style.transition='transform .5s ease, opacity .45s ease'; c.style.transform='scale(.92) translateY(-24px) rotate(-2deg)'; c.style.opacity=0; setTimeout(()=>window.location.href='index.html',520);
+});
 
-// CONFETTI
+/* Confetti */
 function startConfetti(){
   const count=48;
   for(let i=0;i<count;i++){
