@@ -5,197 +5,129 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Lego Tech Fest 2025 — Convertite en Lego</title>
 <style>
-/* (usa tu CSS existente — mantuve los estilos mínimos para funcionalidad) */
-:root { font-size:16px; } *{box-sizing:border-box;margin:0;padding:0} body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:#071026;color:#e9eef8;min-height:100vh}
-.card{max-width:980px;margin:28px auto;padding:24px;background:rgba(255,255,255,0.02);border-radius:12px}
-.hidden{display:none!important}
-.muted{color:#9fb0d8}
-img{max-width:100%;border-radius:12px}
-.btn{padding:12px 18px;border-radius:10px;border:none;background:#00d4ff;color:#061223;font-weight:800;cursor:pointer}
-.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e9eef8}
-.processing-box{padding:24px;background:rgba(0,0,0,0.2);border-radius:10px;text-align:center}
+  /* Minimal styles (puedes usar los tuyos). */
+  body{font-family:Arial,Helvetica,sans-serif;background:#071026;color:#e9eef8;min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center}
+  .card{width:96%;max-width:900px;background:#07142a;padding:22px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.6)}
+  video, img{width:100%;border-radius:10px;display:block}
+  .row{display:flex;gap:12px;margin-top:12px}
+  button{padding:10px 14px;border-radius:8px;border:none;background:#00d4ff;color:#061223;font-weight:700;cursor:pointer}
+  .muted{color:#9fb0d8;font-size:0.9rem}
+  .hidden{display:none}
+  input{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:#061026;color:#eaf2ff}
+  .notice{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;margin-top:10px}
 </style>
 </head>
 <body>
   <div class="card">
-    <button id="backToIndex" class="btn btn-ghost">← Volver</button>
+    <h2>Lego Tech Fest — Convertite con la IA</h2>
 
-    <div id="sceneWebcam">
-      <div style="width:100%;max-width:760px;margin:12px auto;background:#000;border-radius:10px;overflow:hidden;position:relative">
-        <video id="webcamVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1)"></video>
-        <div id="counter" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);font-size:64px;color:#00d4ff;display:none">5</div>
-        <div id="flash" style="position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none"></div>
+    <div id="stage-capture">
+      <div style="background:#000;border-radius:8px;overflow:hidden">
+        <video id="webcam" autoplay playsinline muted style="transform:scaleX(-1);height:360px;object-fit:cover"></video>
       </div>
-      <div style="text-align:center;margin-top:12px">
-        <button id="btnCapture" class="btn">Tomar foto</button>
+      <div class="row">
+        <button id="captureBtn">Tomar foto</button>
+        <button id="backBtn" style="background:transparent;color:#e9eef8;border:1px solid rgba(255,255,255,0.06)">Volver</button>
       </div>
-      <p class="muted">Presioná "Tomar foto".</p>
+      <p class="muted">La imagen será enviada a la IA remota. Asegurate de tener la variable WORDWARE_API_KEY configurada en Netlify.</p>
+      <div id="capture-msg" class="notice hidden"></div>
     </div>
 
-    <div id="sceneProcessing" class="hidden">
-      <div class="processing-box">
-        <div id="processingText">Generando tu versión Lego... aguarda un instante</div>
-      </div>
+    <div id="stage-processing" class="hidden">
+      <div class="notice" id="processingText">Enviando a la IA...</div>
     </div>
 
-    <div id="scenePreview" class="hidden" style="text-align:center">
+    <div id="stage-preview" class="hidden">
       <h3>Previsualización</h3>
-      <img id="legoPreview" alt="Previsualización Lego" />
+      <img id="previewImg" alt="preview" />
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <input id="fileName" placeholder="nombre (ej: juan_legovip)" />
+        <button id="saveBtn" disabled>Guardar</button>
+        <button id="retakeBtn" style="background:transparent;color:#e9eef8;border:1px solid rgba(255,255,255,0.06)">Volver a tomar</button>
+      </div>
+      <div id="serverInfo" class="muted notice hidden"></div>
+    </div>
+
+    <div id="stage-final" class="hidden">
+      <h3>Guardado</h3>
+      <img id="finalImg" alt="final" />
       <div style="margin-top:10px">
-        <input id="nameInput" placeholder="Nombre (ej: juan_legovip)" style="padding:10px;border-radius:8px;background:#061026;color:#eaf2ff;border:1px solid rgba(255,255,255,0.04)" />
-        <div style="margin-top:10px">
-          <button id="btnSave" class="btn" disabled>Guardar</button>
-          <button id="btnRetake" class="btn btn-ghost">Volver a tomar</button>
-        </div>
+        <button id="finishBtn">Finalizar</button>
       </div>
     </div>
 
-    <div id="sceneFinal" class="hidden" style="text-align:center">
-      <h3>¡Listo!</h3>
-      <img id="finalPreview" alt="Resultado final" />
-      <div style="margin-top:12px">
-        <button id="btnFinal" class="btn">Finalizar</button>
-      </div>
-    </div>
   </div>
 
 <script>
-const video = document.getElementById('webcamVideo');
-const counter = document.getElementById('counter');
-const flash = document.getElementById('flash');
-const btnCapture = document.getElementById('btnCapture');
-const btnRetake = document.getElementById('btnRetake');
-const btnSave = document.getElementById('btnSave');
-const nameInput = document.getElementById('nameInput');
-const legoPreview = document.getElementById('legoPreview');
-const finalPreview = document.getElementById('finalPreview');
+// Elements
+const webcam = document.getElementById('webcam');
+const captureBtn = document.getElementById('captureBtn');
+const backBtn = document.getElementById('backBtn');
+const captureMsg = document.getElementById('capture-msg');
+const stageCapture = document.getElementById('stage-capture');
+const stageProcessing = document.getElementById('stage-processing');
+const stagePreview = document.getElementById('stage-preview');
+const stageFinal = document.getElementById('stage-final');
 const processingText = document.getElementById('processingText');
+const previewImg = document.getElementById('previewImg');
+const finalImg = document.getElementById('finalImg');
+const fileNameInput = document.getElementById('fileName');
+const saveBtn = document.getElementById('saveBtn');
+const retakeBtn = document.getElementById('retakeBtn');
+const serverInfo = document.getElementById('serverInfo');
+const finishBtn = document.getElementById('finishBtn');
 
-const sceneWebcam = document.getElementById('sceneWebcam');
-const sceneProcessing = document.getElementById('sceneProcessing');
-const scenePreview = document.getElementById('scenePreview');
-const sceneFinal = document.getElementById('sceneFinal');
+let stream=null, lastDataUrl=null, capturedBlob=null;
 
-let stream=null, capturedBlob=null, legoDataUrl=null, counting=false;
-
-// start webcam
-async function startWebcam(){
+// Start webcam
+async function startCamera(){
   try{
-    stream = await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720},audio:false});
-    video.srcObject = stream;
+    stream = await navigator.mediaDevices.getUserMedia({ video: { width:1280, height:720 }, audio:false });
+    webcam.srcObject = stream;
   }catch(e){
-    alert('No se pudo acceder a la cámara: ' + (e?.message || e));
+    console.error('Camera start failed', e);
+    captureMsg.textContent = 'No se pudo acceder a la cámara: ' + (e.message || e);
+    captureMsg.classList.remove('hidden');
   }
 }
-startWebcam();
+startCamera();
 
-function showScene(scene){
-  [sceneWebcam, sceneProcessing, scenePreview, sceneFinal].forEach(s=>s.classList.add('hidden'));
-  scene.classList.remove('hidden');
+function showStage(stage){
+  [stageCapture, stageProcessing, stagePreview, stageFinal].forEach(s => s.classList.add('hidden'));
+  stage.classList.remove('hidden');
 }
 
-// counter UI
-function showCounter(v){
-  counter.textContent = v;
-  counter.style.display = 'block';
-  counter.style.transform = 'scale(1)';
-}
-function hideCounter(){
-  counter.style.transform = 'scale(0)';
-  setTimeout(()=>counter.style.display='none',220);
-}
-
-// capture sequence
-btnCapture.addEventListener('click', ()=>{
-  if(counting) return;
-  counting = true;
-  btnCapture.disabled = true;
-
-  let t = 3;
-  showCounter(t);
-  const tick = setInterval(()=>{
-    t--;
-    if(t > 0){
-      counter.textContent = t;
-    } else {
-      clearInterval(tick);
-      counter.textContent = '✓';
-      flash.style.opacity = 0.85;
-      setTimeout(()=>{ flash.style.opacity = 0; }, 120);
-      setTimeout(()=>{ hideCounter(); captureFrame(); }, 160);
-    }
-  }, 1000);
-});
-
+// Capture frame and process (resize+compress) -> blob
 async function captureFrame(){
-  try{
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
-    // mirror
-    ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const videoTrack = stream?.getVideoTracks?.()[0];
+  if(!videoTrack){ throw new Error('No video track'); }
+  const canvas = document.createElement('canvas');
+  canvas.width = webcam.videoWidth || 1280;
+  canvas.height = webcam.videoHeight || 720;
+  const ctx = canvas.getContext('2d');
+  // mirror to preserve user's view
+  ctx.translate(canvas.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(webcam, 0, 0, canvas.width, canvas.height);
 
-    // get original blob
-    const originalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    if(!originalBlob) throw new Error('No se pudo capturar la imagen');
-
-    // resize & compress on client to reduce payload
-    const processedBlob = await resizeAndCompressBlob(originalBlob, { maxWidth: 1024, quality: 0.82 });
-
-    capturedBlob = processedBlob;
-    // go to processing scene
-    showScene(sceneProcessing);
-    processingText.textContent = 'Enviando a servidor...';
-
-    const ok = await generateLegoOnBackend(processedBlob);
-    if(ok){
-      // show preview (legoDataUrl is set)
-      legoPreview.src = legoDataUrl;
-      nameInput.value = '';
-      btnSave.disabled = true;
-      showScene(scenePreview);
-      nameInput.focus();
-    } else {
-      // fallback will have set legoDataUrl as well
-      if(legoDataUrl){
-        legoPreview.src = legoDataUrl;
-        nameInput.value = '';
-        btnSave.disabled = true;
-        showScene(scenePreview);
-        nameInput.focus();
-      } else {
-        alert('No se pudo generar la imagen (ni local ni remoto). Reintentá.');
-        showScene(sceneWebcam);
-      }
-    }
-
-  } catch (err) {
-    console.error('captureFrame error:', err);
-    alert('Error al capturar la foto: ' + (err?.message || err));
-    showScene(sceneWebcam);
-  } finally {
-    counting = false;
-    btnCapture.disabled = false;
-  }
+  // original as PNG then compress by resizing to max 1024 width and JPEG quality 0.82
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+  const processed = await resizeAndCompressBlob(blob, { maxWidth: 1024, quality: 0.82 });
+  return processed;
 }
 
-// resize & compress helper
-async function resizeAndCompressBlob(blob, { maxWidth = 1024, quality = 0.82 } = {}) {
+async function resizeAndCompressBlob(blob, { maxWidth = 1024, quality = 0.82 } = {}){
   const bitmap = await createImageBitmap(blob);
-  let targetWidth = bitmap.width;
-  let targetHeight = bitmap.height;
-  if (bitmap.width > maxWidth) {
-    const scale = maxWidth / bitmap.width;
-    targetWidth = Math.round(bitmap.width * scale);
-    targetHeight = Math.round(bitmap.height * scale);
+  let w = bitmap.width, h = bitmap.height;
+  if(w > maxWidth){
+    const scale = maxWidth / w;
+    w = Math.round(w * scale);
+    h = Math.round(h * scale);
   }
   const c = document.createElement('canvas');
-  c.width = targetWidth;
-  c.height = targetHeight;
+  c.width = w; c.height = h;
   const ctx = c.getContext('2d');
-  ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
+  ctx.drawImage(bitmap, 0, 0, w, h);
   const outBlob = await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
   bitmap.close?.();
   return outBlob;
@@ -205,9 +137,9 @@ async function blobToBase64(blob){
   return new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => {
-      if (typeof r.result === 'string') {
+      if(typeof r.result === 'string'){
         const parts = r.result.split(',');
-        if (parts.length >= 2) resolve(parts[1]);
+        if(parts.length >= 2) resolve(parts[1]);
         else reject(new Error('Invalid data URL from FileReader'));
       } else reject(new Error('FileReader result not string'));
     };
@@ -216,182 +148,140 @@ async function blobToBase64(blob){
   });
 }
 
-// MAIN: try serverless, otherwise fallback local processing
-async function generateLegoOnBackend(photoBlob){
-  let controller;
-  try {
-    // attempt serverless call
-    const base64 = await blobToBase64(photoBlob);
-    processingText.textContent = 'Generando con IA (intento) - aguarda...';
-    controller = new AbortController();
-    const to = setTimeout(()=>controller.abort(), 60_000);
+// POST to serverless with retries client-side
+async function postToServer(base64, maxAttempts = 2){
+  const url = '/.netlify/functions/generate-lego';
+  let attempt = 0;
+  let lastErr = null;
+  for(attempt = 1; attempt <= maxAttempts; attempt++){
+    try {
+      processingText.textContent = `Enviando a IA (intentando ${attempt}/${maxAttempts})...`;
+      const controller = new AbortController();
+      const timeout = setTimeout(()=>controller.abort(), 60_000);
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: base64 }),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
 
-    const resp = await fetch('/.netlify/functions/generate-lego', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image_base64: base64 }),
-      signal: controller.signal
+      const text = await resp.text().catch(()=>null);
+      let json = null;
+      try { json = text ? JSON.parse(text) : null; } catch(e){ json = null; }
+
+      if(!resp.ok){
+        console.warn('[client] server returned non-ok', resp.status, text);
+        lastErr = { status: resp.status, text };
+        // if 5xx or 429 -> retry
+        if(resp.status >= 500 || resp.status === 429){
+          if(attempt < maxAttempts) await new Promise(r => setTimeout(r, 1000 * attempt));
+          continue;
+        } else {
+          throw new Error('Server error: ' + text);
+        }
+      }
+
+      return json || {};
+    } catch (e){
+      lastErr = e;
+      console.error('[client] postToServer attempt failed', attempt, e);
+      if(attempt < maxAttempts) await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
+  throw lastErr;
+}
+
+// main capture flow
+captureBtn.addEventListener('click', async ()=>{
+  try{
+    showStage(stageProcessing);
+    const processedBlob = await captureFrame();
+    capturedBlob = processedBlob;
+
+    // convert base64
+    const base64 = await blobToBase64(processedBlob);
+
+    // call server
+    const serverResp = await postToServer(base64, 3).catch(err=>{
+      throw err;
     });
 
-    clearTimeout(to);
-
-    if (!resp.ok) {
-      const txt = await resp.text().catch(()=>null);
-      console.warn('Server returned non-ok:', resp.status, txt);
-      processingText.textContent = 'El servidor devolvió error — usando fallback local';
-      // continue to fallback
-      const fallback = await localLegoize(photoBlob);
-      legoDataUrl = fallback;
-      return false;
-    }
-
-    const json = await resp.json().catch(()=>null);
-    if(!json){
-      console.warn('Invalid JSON from server');
-      processingText.textContent = 'Respuesta inválida del servidor — usando fallback local';
-      const fallback = await localLegoize(photoBlob);
-      legoDataUrl = fallback;
-      return false;
-    }
-
-    if (json.data_url) {
-      // success: server returned data_url (avoids CORS)
-      legoDataUrl = json.data_url;
-      processingText.textContent = 'Generación IA completada';
-      return true;
-    }
-
-    // if only result_url present, try to fetch it (may fail due to CORS)
-    if (json.result_url) {
-      processingText.textContent = 'Descargando imagen generada...';
+    // serverResp expected: { result_url: "...", data_url: "data:...;base64,..." }
+    if(serverResp && serverResp.data_url){
+      lastDataUrl = serverResp.data_url;
+      previewImg.src = lastDataUrl;
+      serverInfo.textContent = `Servidor: OK (result_url: ${serverResp.result_url || 'n/a'})`;
+      serverInfo.classList.remove('hidden');
+      showStage(stagePreview);
+      fileNameInput.value = '';
+      saveBtn.disabled = true;
+      return;
+    } else if(serverResp && serverResp.result_url){
+      // server provided only result_url: attempt to fetch it client-side (may cause CORS failure)
       try {
-        const r2 = await fetch(json.result_url);
-        if(!r2.ok) throw new Error('HTTP ' + r2.status);
-        const b = await r2.blob();
-        const dataUrl = await new Promise((res, rej) => {
-          const reader = new FileReader();
-          reader.onload = () => res(reader.result);
-          reader.onerror = (e) => rej(e || new Error('FileReader error'));
-          reader.readAsDataURL(b);
-        });
-        legoDataUrl = dataUrl;
-        processingText.textContent = 'Generación IA completada';
-        return true;
-      } catch (err) {
-        console.warn('Could not fetch result_url from client (likely CORS). Falling back locally.', err);
-        processingText.textContent = 'No se pudo descargar result_url (CORS) — usando fallback local';
-        const fallback = await localLegoize(photoBlob);
-        legoDataUrl = fallback;
-        return false;
+        const r = await fetch(serverResp.result_url);
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        const b = await r.blob();
+        const reader = new FileReader();
+        reader.onload = () => {
+          lastDataUrl = reader.result;
+          previewImg.src = lastDataUrl;
+          serverInfo.textContent = `Servidor: OK (fetched result_url)`;
+          serverInfo.classList.remove('hidden');
+          showStage(stagePreview);
+          fileNameInput.value = '';
+          saveBtn.disabled = true;
+        };
+        reader.onerror = (e) => { throw e || new Error('FileReader failed'); };
+        reader.readAsDataURL(b);
+        return;
+      } catch (e) {
+        console.error('[client] failed to download result_url (likely CORS):', e);
+        throw new Error('El servidor devolvió una URL que no se pudo descargar desde el cliente (CORS). Pegá aquí el JSON de respuesta del servidor para que lo revise.');
       }
+    } else {
+      console.error('[client] unexpected server response', serverResp);
+      throw new Error('Respuesta inesperada del servidor: ' + JSON.stringify(serverResp).slice(0,1000));
     }
 
-    // unexpected: neither data_url nor result_url
-    console.warn('Server response missing data_url and result_url:', json);
-    processingText.textContent = 'Respuesta incompleta del servidor — usando fallback local';
-    const fallback = await localLegoize(photoBlob);
-    legoDataUrl = fallback;
-    return false;
-
-  } catch (err) {
-    console.error('generateLegoOnBackend failed:', err);
-    processingText.textContent = 'Error comunicándose con el servidor — usando fallback local';
-    try {
-      const fallback = await localLegoize(photoBlob);
-      legoDataUrl = fallback;
-      return false;
-    } catch (e) {
-      console.error('Fallback also failed:', e);
-      return false;
-    }
-  } finally {
-    controller?.abort?.();
+  } catch (err){
+    console.error('Error en flujo IA:', err);
+    // show friendly message + raw error
+    showStage(stageCapture);
+    captureMsg.textContent = 'Error generando la imagen: ' + (err?.message || err);
+    captureMsg.classList.remove('hidden');
+    // also reveal server response details in console (so user can paste)
+    console.error('Por favor copia el log de consola y el JSON de la respuesta del servidor (si existe).');
   }
-}
+});
 
-/* LOCAL FALLBACK: pixelate + posterize to simulate "lego" effect */
-async function localLegoize(blob) {
-  processingText.textContent = 'Aplicando efecto local (fallback)...';
-  // create ImageBitmap
-  const img = await createImageBitmap(blob);
-  // pick pixelation factor based on image width
-  const pixelSize = Math.max(6, Math.round(Math.min(img.width, img.height) / 60)); // dynamic
-  const smallW = Math.max(32, Math.round(img.width / pixelSize));
-  const smallH = Math.max(32, Math.round(img.height / pixelSize));
-
-  // draw small canvas (downscale)
-  const small = document.createElement('canvas');
-  small.width = smallW;
-  small.height = smallH;
-  const sctx = small.getContext('2d');
-  sctx.drawImage(img, 0, 0, smallW, smallH);
-
-  // posterize / quantize colors on small canvas
-  const imgData = sctx.getImageData(0, 0, smallW, smallH);
-  const data = imgData.data;
-  const levels = 6; // number of color levels per channel (adjust for strength)
-  for(let i=0;i<data.length;i+=4){
-    data[i]   = Math.round((data[i]   / 255) * (levels-1)) * Math.round(255/(levels-1)); // R
-    data[i+1] = Math.round((data[i+1] / 255) * (levels-1)) * Math.round(255/(levels-1)); // G
-    data[i+2] = Math.round((data[i+2] / 255) * (levels-1)) * Math.round(255/(levels-1)); // B
-    // keep alpha as is
-  }
-  sctx.putImageData(imgData, 0, 0);
-
-  // draw to big canvas with no smoothing (pixelated)
-  const big = document.createElement('canvas');
-  big.width = img.width;
-  big.height = img.height;
-  const bctx = big.getContext('2d');
-  bctx.imageSmoothingEnabled = false;
-  bctx.drawImage(small, 0, 0, big.width, big.height);
-
-  // optional: add subtle grid lines to mimic bricks
-  const gridSize = Math.max(10, Math.round(pixelSize / 1.5));
-  bctx.globalAlpha = 0.06;
-  bctx.strokeStyle = '#000';
-  for(let x=0;x<big.width;x+=gridSize){
-    bctx.beginPath(); bctx.moveTo(x+0.5,0); bctx.lineTo(x+0.5,big.height); bctx.stroke();
-  }
-  for(let y=0;y<big.height;y+=gridSize){
-    bctx.beginPath(); bctx.moveTo(0,y+0.5); bctx.lineTo(big.width,y+0.5); bctx.stroke();
-  }
-  bctx.globalAlpha = 1;
-
-  // optional: slight vignette / texture could be applied here if needed
-
-  const dataUrl = big.toDataURL('image/png', 0.9);
-  img.close?.();
-  return dataUrl;
-}
-
-// SAVE / DOWNLOAD
-btnSave.addEventListener('click', ()=>{
-  if(!legoDataUrl) { alert('No hay imagen para guardar'); return; }
-  let name = (nameInput.value || '').trim();
-  if(!name){ alert('Ingresá un nombre'); nameInput.focus(); return; }
+// Save / download
+saveBtn.addEventListener('click', async ()=>{
+  if(!lastDataUrl) return alert('No hay imagen para guardar');
+  let name = (fileNameInput.value || '').trim();
+  if(!name) { alert('Ingresá un nombre'); fileNameInput.focus(); return; }
   name = name.replace(/[^a-z0-9_\-]/gi,'_').toLowerCase();
-  // create blob and download
-  fetch(legoDataUrl).then(r=>r.blob()).then(blob=>{
+
+  try {
+    const res = await fetch(lastDataUrl);
+    const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = name + '.png';
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
-    finalPreview.src = legoDataUrl;
-    showScene(sceneFinal);
-  }).catch(e=>{
-    console.error('download failed', e);
+    finalImg.src = lastDataUrl;
+    showStage(stageFinal);
+  } catch (e){
+    console.error('Save failed', e);
     alert('Error descargando la imagen: ' + (e?.message || e));
-  });
+  }
 });
 
-nameInput.addEventListener('input', ()=> btnSave.disabled = !nameInput.value.trim());
-btnRetake.addEventListener('click', ()=> {
-  legoDataUrl = null; capturedBlob = null;
-  showScene(sceneWebcam);
-});
-document.getElementById('backToIndex').addEventListener('click', ()=> location.href = 'index.html');
-document.getElementById('btnFinal').addEventListener('click', ()=> location.href = 'index.html');
+fileNameInput.addEventListener('input', ()=> saveBtn.disabled = !fileNameInput.value.trim());
+retakeBtn.addEventListener('click', ()=> { lastDataUrl = null; capturedBlob = null; showStage(stageCapture); });
+finishBtn.addEventListener('click', ()=> location.href = 'index.html');
+backBtn.addEventListener('click', ()=> location.href = 'index.html');
 
 </script>
 </body>
