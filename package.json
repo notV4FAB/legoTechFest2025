@@ -7,7 +7,7 @@
     "start": "echo 'Run locally with netlify dev'"
   },
   "dependencies": {
-    "@netlify/blobs": "^5.3.0",
+    "@netlify/blobs": "^5.2.3",
     "node-fetch": "^3.3.2"
   }
 }
