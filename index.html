@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Lego Tech Fest 2025 — Convertite en Lego</title>
+<style>
+  /* ---------- Reset & base ---------- */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+    background: radial-gradient(1200px 600px at 10% 10%, rgba(0,212,255,0.06), transparent),
+                linear-gradient(135deg,#0f1121 0%, #2b2340 100%);
+    color:#e9eef8;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    display:flex;flex-direction:column;min-height:100vh;
+  }
+
+  header,footer{background:rgba(0,0,0,0.15);backdrop-filter:blur(6px);padding:18px 12px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+  header h1{font-size:1.35rem;letter-spacing:1px}
+  footer p{font-size:0.85rem;color:#bfc8df}
+
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;position:relative}
+
+  /* ---------- home (menu inicial) ---------- */
+  .card{width:100%;max-width:980px;border-radius:18px;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow: 0 12px 40px rgba(2,6,23,0.6); position:relative; overflow:hidden}
+  #home{display:flex;align-items:center;gap:28px;justify-content:space-between;flex-wrap:wrap}
+  .hero{
+    flex:1 1 420px; min-width:260px;
+  }
+  .hero h2{
+    font-size:2.05rem;margin-bottom:8px;
+    background:linear-gradient(90deg,#00d4ff,#ff6ec7 65%); -webkit-background-clip:text; color:transparent;
+    text-shadow:0 6px 30px rgba(0,0,0,0.55);
+  }
+  .hero p{color:#bfc8df;margin-bottom:18px;font-size:1.05rem}
+
+  .home-cta{display:flex;gap:14px;flex-wrap:wrap}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(180deg,#00d4ff,#0070b8); color:#061223; font-weight:700; box-shadow:0 8px 30px rgba(0,212,255,0.12);
+    transition:transform .22s ease, box-shadow .22s ease;
+  }
+  .btn.secondary{background:linear-gradient(180deg,#ff9ad6,#ff6ec7); color:#061223}
+  .btn:hover{transform:translateY(-6px); box-shadow:0 14px 40px rgba(0,0,0,0.45)}
+
+  .sparkle{width:220px;height:220px;border-radius:14px;flex:0 0 220px;background:
+    conic-gradient(from 180deg at 50% 50%, rgba(255,110,199,0.12), rgba(0,212,255,0.08));
+    display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.03);
+    box-shadow:inset 0 6px 30px rgba(0,0,0,0.35)}
+  .sparkle p{font-weight:700;color:#f8fbff;text-align:center;padding:10px;font-size:0.95rem}
+
+  /* movie-like transition elements */
+  .hero, .sparkle { transform-origin:center; transition: transform .8s cubic-bezier(.2,.9,.3,1), opacity .6s }
+  /* ---------- Secciones (crear / buscar) ---------- */
+  .section-wrap{display:none; width:100%; max-width:980px}
+  .section-wrap.active{display:block}
+
+  .panel{
+    margin-top:10px; border-radius:14px; padding:20px; background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    box-shadow: 0 12px 36px rgba(3,6,23,0.55); position:relative;
+  }
+
+  /* floating back button OUTSIDE the box */
+  .back-btn{
+    position:absolute; top:-20px; left:-20px; z-index:50;
+    background:rgba(10,10,12,0.7); color:#fff; border-radius:50%; width:56px; height:56px;
+    display:inline-grid;place-items:center; font-weight:700; border:2px solid rgba(255,255,255,0.06); cursor:pointer;
+    box-shadow:0 8px 36px rgba(0,0,0,0.6);
+    transition:transform .18s ease, opacity .18s;
+  }
+  .back-btn:hover{transform:translateY(-6px)}
+
+  /* ---------- BUSCAR: search / result layout ---------- */
+  .search-box{display:flex;flex-direction:column;align-items:center;gap:12px;padding:18px}
+  .search-box input{
+    width:100%;max-width:560px;padding:14px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.06);
+    background:rgba(8,10,14,0.35); color:#f4f8ff; outline:none;font-size:1rem
+  }
+  .muted{color:#aeb9d6;font-size:0.95rem;margin-top:6px}
+
+  /* result area uses grid to place image + sidebar (download) */
+  .result-area{
+    display:grid; grid-template-columns: 1fr 320px; gap:18px; align-items:center; margin-top:18px;
+  }
+  .result-area.mobile{grid-template-columns:1fr; text-align:center}
+  .img-frame{
+    border-radius:12px; overflow:hidden; border:4px solid rgba(0,212,255,0.12);
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:flex;align-items:center;justify-content:center;padding:12px;
+  }
+  .img-frame img{max-width:100%;border-radius:10px; display:block; transition:transform .25s}
+  .img-frame img:hover{transform:scale(1.02) rotate(1deg)}
+
+  .side-panel{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:center}
+  .download-btn{padding:12px 16px;border-radius:10px;border:none;cursor:pointer;background:#00d4ff;color:#061223;font-weight:800;box-shadow:0 12px 30px rgba(0,212,255,0.12)}
+  .small-muted{font-size:0.88rem;color:#c9d6f2;text-align:center}
+
+  /* spinner */
+  .spinner{width:48px;height:48px;border-radius:50%;border:5px solid rgba(255,255,255,0.08);border-top-color:#00d4ff;animation:spin 1s linear infinite;margin:8px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* responsive */
+  @media (max-width:920px){
+    .result-area{grid-template-columns:1fr 260px}
+    .sparkle{display:none}
+    .hero h2{font-size:1.6rem}
+  }
+  @media (max-width:640px){
+    .card{padding:18px}
+    .hero{flex:1 1 100%}
+    .home-cta{justify-content:center}
+    .result-area{grid-template-columns:1fr; gap:12px}
+    .side-panel{flex-direction:row; gap:12px}
+    .side-panel .download-btn{flex:1}
+  }
+
+  /* little flourishes */
+  .notice{padding:8px 12px;border-radius:10px;background:rgba(0,0,0,0.25);color:#dbe9ff;font-weight:600}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+  <header><h1>Lego Tech Fest 2025</h1></header>
+
+  <main>
+    <div class="card" aria-live="polite" id="mainCard">
+      <!-- HOME -->
+      <div id="home" >
+        <div class="hero">
+          <h2>¡Bienvenido al Stand de Lego Tech Fest!</h2>
+          <p>Convertite en Lego y llevate tu versión a casa. Elegí una opción para empezar.</p>
+          <div class="home-cta" style="margin-top:14px">
+            <button class="btn" id="btnCreate" onclick="startTransition('crear')">Crear Imagen</button>
+            <button class="btn secondary" id="btnGet" onclick="startTransition('buscar')">Obtener Imagen</button>
+          </div>
+          <p style="margin-top:14px" class="muted">Tip: Escribí el nombre EXACTO que le diste a tu imagen (sin extensión).</p>
+        </div>
+
+        <div class="sparkle" aria-hidden="true"><p>Stand interactivo<br>Experiencia VIP</p></div>
+      </div>
+
+      <!-- CREAR (placeholder) -->
+      <div id="crear" class="section-wrap" aria-hidden="true">
+        <div class="panel">
+          <button class="back-btn" title="Volver" onclick="goHome()">←</button>
+          <h3 style="margin-bottom:12px">Crear Imagen</h3>
+          <p class="muted">Toca el boton de abajo para ir a la seccion para convertirte el lego.</p>
+          <div style="margin-top:18px">
+            <button class="btn" onclick="window.location.href = 'lego.html'">Convertite el Lego</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUSCAR -->
+      <div id="buscar" class="section-wrap" aria-hidden="true">
+        <div class="panel" style="position:relative;">
+          <button class="back-btn" title="Volver" onclick="goHome()">←</button>
+
+          <!-- Parte 1: búsqueda -->
+          <div id="searchPart" class="search-box">
+            <input id="inputName" aria-label="Nombre de imagen" placeholder="Escribí el nombre que le diste a tu imagen." />
+            <div style="display:flex;gap:12px;align-items:center">
+              <button class="btn" id="btnSearch" onclick="onSearch()">Buscar</button>
+              <div id="spinnerSmall" class="spinner hidden" aria-hidden="true"></div>
+            </div>
+            <div id="msg" class="muted">Escribí el nombre y tocá Buscar.</div>
+          </div>
+
+          <!-- Parte 2: resultado -->
+          <div id="resPart" class="hidden">
+            <div id="resultWrap" class="result-area" >
+              <div class="img-frame">
+                <img id="foundImg" alt="Imagen encontrada" src="" />
+              </div>
+              <div class="side-panel">
+                <div id="fileInfo" class="small-muted">Nombre: <span id="fileName"></span></div>
+                <button id="btnDownload" class="download-btn" onclick="downloadFound()">Descargar imagen</button>
+                <div id="spinnerLarge" class="spinner hidden" style="width:36px;height:36px;border-width:4px"></div>
+                <div id="downloadHint" class="small-muted">Si estás en iPhone, puede abrir el diálogo de compartir.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer><p>Tech Fest 2025. Creado por Juan Bautista Fabris Rico y Francisco Farina</p></footer>
+
+<script>
+/* ---------- Utils ---------- */
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const mainCard = document.getElementById('mainCard');
+const home = document.getElementById('home');
+const crear = document.getElementById('crear');
+const buscar = document.getElementById('buscar');
+
+function hideElement(el){ el.style.opacity = 0; el.style.transform = 'scale(.94)'; setTimeout(()=>el.style.display='none', 500); }
+function showElement(el, display='block'){ el.style.display = display; setTimeout(()=>{ el.style.opacity = 1; el.style.transform = 'scale(1)'; }, 30); }
+
+/* ---------- Transitions: home -> section (Oscar-worthy) ---------- */
+function startTransition(sectionId){
+  // animate home out fully, then show the section
+  home.style.transition = 'transform .8s cubic-bezier(.2,.9,.3,1), opacity .6s';
+  home.style.opacity = 0;
+  home.style.transform = 'translateY(-18px) scale(.92) rotate(-0.6deg)';
+  // subtle sparkle tilt
+  setTimeout(()=>{
+    home.style.display = 'none';
+    // show target
+    if(sectionId === 'crear'){ showSection(crear); }
+    if(sectionId === 'buscar'){ showSection(buscar); focusSearch(); }
+  }, 520);
+}
+
+function showSection(sectionEl){
+  // hide all sections
+  [crear, buscar].forEach(s=>{ s.style.display='none'; s.style.opacity=0; s.style.transform='scale(.96)'; });
+  sectionEl.style.display = 'block';
+  sectionEl.style.opacity = 0;
+  sectionEl.style.transform = 'scale(.96)';
+  // small delay to allow repaint
+  setTimeout(()=>{ sectionEl.classList.add('active'); sectionEl.style.opacity = 1; sectionEl.style.transform = 'scale(1)'; sectionEl.removeAttribute('aria-hidden'); }, 60);
+}
+
+function goHome(){
+  // hide any open sections fully
+  [crear, buscar].forEach(s=>{
+    s.classList.remove('active');
+    s.style.opacity = 0;
+    s.style.transform = 'scale(.96)';
+    s.style.display = 'none';
+    s.setAttribute('aria-hidden','true');
+  });
+  // show home again
+  home.style.display = 'flex';
+  home.style.opacity = 0;
+  home.style.transform = 'translateY(6px) scale(.98)';
+  setTimeout(()=>{ home.style.opacity = 1; home.style.transform = 'translateY(0) scale(1)'; }, 30);
+
+  // reset search UI
+  resetSearchUI();
+}
+
+/* ---------- SEARCH / EXISTENCE CHECK ---------- */
+
+/*
+ Strategy:
+ 1) Build a local relative URL: "createdimg/<name>.png"
+ 2) Try to detect existence by loading the image via JS Image() (onload / onerror).
+    - This avoids CORS problems with HEAD.
+ 3) If local fails, try the GitHub raw URL as fallback.
+ 4) Report success URL (the first that works) or not found.
+*/
+function buildLocalUrl(name){ return `createdimg/${encodeURIComponent(name)}.png`; }
+function buildGitHubRawUrl(name){
+  return `https://raw.githubusercontent.com/notV4FAB/legoTechFest2025/main/createdimg/${encodeURIComponent(name)}.png`;
+}
+
+// tries to load an image, resolves true if success, false if error (with timeout).
+function tryLoadImage(url, timeoutMs = 7000){
+  return new Promise((resolve) => {
+    const img = new Image();
+    let done = false;
+    const t = setTimeout(()=>{ if(!done){ done = true; img.onload = img.onerror = null; resolve(false); } }, timeoutMs);
+
+    img.onload = () => { if(done) return; done = true; clearTimeout(t); resolve(true); };
+    img.onerror = () => { if(done) return; done = true; clearTimeout(t); resolve(false); };
+    // Important: set src last
+    img.src = url + (url.includes('?') ? '&' : '?') + 'cachebust=' + Date.now();
+  });
+}
+
+async function findImageByName(name){
+  const lower = name.trim();
+  if(!lower) return null;
+  const local = buildLocalUrl(lower);
+  const okLocal = await tryLoadImage(local, 5000);
+  if(okLocal) return local;
+
+  const raw = buildGitHubRawUrl(lower);
+  const okRaw = await tryLoadImage(raw, 7000);
+  if(okRaw) return raw;
+
+  return null;
+}
+
+/* ---------- UI helpers for SEARCH ---------- */
+const inputName = document.getElementById('inputName');
+const btnSearch = document.getElementById('btnSearch');
+const spinnerSmall = document.getElementById('spinnerSmall');
+const spinnerLarge = document.getElementById('spinnerLarge');
+const msg = document.getElementById('msg');
+const searchPart = document.getElementById('searchPart');
+const resPart = document.getElementById('resPart');
+const foundImg = document.getElementById('foundImg');
+const fileNameSpan = document.getElementById('fileName');
+const btnDownload = document.getElementById('btnDownload');
+let currentFoundUrl = null;
+let currentFoundName = null;
+
+function focusSearch(){ setTimeout(()=>inputName.focus(), 250); }
+
+function setSearching(on){
+  if(on){
+    spinnerSmall.classList.remove('hidden'); btnSearch.disabled = true; btnSearch.style.opacity=0.7;
+    msg.textContent = 'Buscando...';
+  } else {
+    spinnerSmall.classList.add('hidden'); btnSearch.disabled = false; btnSearch.style.opacity=1;
+  }
+}
+
+function resetSearchUI(){
+  // show searchPart, hide resPart
+  searchPart.style.display = 'flex';
+  resPart.classList.add('hidden'); resPart.style.display='none';
+  msg.textContent = 'Escribí el nombre y tocá Buscar.';
+  inputName.value = '';
+  foundImg.src = '';
+  currentFoundUrl = null; currentFoundName = null;
+}
+
+/* ---------- Main search flow ---------- */
+async function onSearch(){
+  const rawName = inputName.value.trim();
+  if(!rawName){ msg.textContent = 'Ingresá un nombre válido.'; return; }
+
+  setSearching(true);
+  try{
+    const found = await findImageByName(rawName);
+    setSearching(false);
+
+    if(!found){
+      msg.textContent = 'No se encontró ninguna imagen con ese nombre.';
+      return;
+    }
+
+    // show results
+    currentFoundUrl = found;
+    currentFoundName = rawName + '.png';
+    fileNameSpan.textContent = currentFoundName;
+
+    // hide search, show resPart
+    searchPart.style.display = 'none';
+    resPart.style.display = 'block';
+    resPart.classList.remove('hidden');
+
+    // adjust layout for mobile
+    const resultWrap = document.getElementById('resultWrap');
+    if(isMobile){
+      resultWrap.classList.add('mobile');
+    } else {
+      resultWrap.classList.remove('mobile');
+    }
+
+    // set image src (use URL directly)
+    foundImg.src = found;
+    foundImg.alt = currentFoundName;
+    msg.textContent = 'Imagen encontrada ✓';
+
+  }catch(e){
+    console.error(e);
+    setSearching(false);
+    msg.textContent = 'Error al buscar la imagen.';
+  }
+}
+
+/* ---------- Download logic (iOS share fallback, fetch+blob otherwise) ---------- */
+async function downloadFound(){
+  if(!currentFoundUrl || !currentFoundName) return alert('No hay imagen seleccionada.');
+
+  // show spinner
+  spinnerLarge.classList.remove('hidden');
+  btnDownload.disabled = true;
+  btnDownload.style.opacity = 0.6;
+
+  const isApple = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  try{
+    // prefer navigator.share if Apple + capable
+    if(isApple && navigator.canShare && navigator.canShare({ files: [ new File([""], currentFoundName) ] })){
+      // fetch blob then share
+      const r = await fetch(currentFoundUrl);
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const blob = await r.blob();
+      const file = new File([blob], currentFoundName, { type: blob.type });
+      await navigator.share({ files:[file], title: currentFoundName });
+    } else {
+      // general case: fetch blob + createObjectURL + download
+      const r = await fetch(currentFoundUrl);
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const blob = await r.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = currentFoundName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+  }catch(err){
+    console.warn('Descarga/Share falló, abriendo en nueva pestaña como fallback:', err);
+    // fallback open in new tab
+    window.open(currentFoundUrl,'_blank');
+  } finally{
+    spinnerLarge.classList.add('hidden');
+    btnDownload.disabled = false;
+    btnDownload.style.opacity = 1;
+  }
+}
+
+/* ---------- Small UX niceties ---------- */
+inputName.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); onSearch(); } });
+
+/* On load: ensure home visible, sections hidden */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // ensure initial states
+  home.style.display = 'flex'; home.style.opacity = 1; home.style.transform = 'scale(1)';
+  crear.style.display = 'none'; buscar.style.display = 'none';
+  resetSearchUI();
+});
+</script>
+</body>
+</html>
