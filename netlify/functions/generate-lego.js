@@ -1,4 +1,9 @@
-// /.netlify/functions/generate-lego.js
+// netlify/functions/generate-lego.js
+import { blobs } from '@netlify/blobs';
+import fetch from 'node-fetch';
+
+export async function handler(event) {
+  // /.netlify/functions/generate-lego.js
 'use strict';
 
 import { blobs } from '@netlify/blobs';
@@ -94,4 +99,6 @@ export async function handler(event) {
     console.error('[generate-lego] error:', err);
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
+}
+
 }
