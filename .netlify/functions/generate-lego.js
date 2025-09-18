@@ -1,6 +1,6 @@
 // generate-lego.js  (Netlify function, CommonJS)
-// Reintentos, timeouts, robust parsing, descarga server-side y retorno data_url.
-// Requiere: WORDWARE_API_KEY en env vars de Netlify.
+// Robust: retries, timeouts, server-side fetch of generated image, returns data_url.
+// Requires: WORDWARE_API_KEY in Netlify environment variables.
 
 'use strict';
 
@@ -8,7 +8,6 @@ const DEFAULT_WORDWARE_TIMEOUT = 45_000; // ms
 const DEFAULT_FETCH_IMAGE_TIMEOUT = 20_000;
 const MAX_BASE64_LENGTH = 9_000_000; // guard
 
-// small helper: sleep
 function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 
 function makeResponse(statusCode, payload){
@@ -81,7 +80,6 @@ exports.handler = async function(event, context) {
           body: JSON.stringify(payload)
         }, DEFAULT_WORDWARE_TIMEOUT);
 
-        // if non-OK and status 429/5xx -> consider retry
         if(!wordwareRes.ok){
           const txt = await wordwareRes.text().catch(()=>null);
           console.warn(`[generate-lego] Wordware returned ${wordwareRes.status} (attempt ${attempt}) - ${String(txt).slice(0,300)}`);
@@ -90,12 +88,10 @@ exports.handler = async function(event, context) {
             if(attempt < maxAttempts) await sleep(1200 * attempt); // backoff
             continue; // retry
           } else {
-            // client error (4xx other than 429) -> don't retry
             return makeResponse(wordwareRes.status, { error: 'Wordware returned non-success', status: wordwareRes.status, detail: txt });
           }
         }
 
-        // ok
         break;
       } catch (e){
         lastErr = e;
