@@ -212,7 +212,7 @@ function startTransition(sectionId){
   setTimeout(()=>{
     home.style.display = 'none';
     // show target
-    if(sectionId === 'crear'){ showSection(crear); }
+    if(sectionId === 'crear'){ window.location.href = "lego.html"; }
     if(sectionId === 'buscar'){ showSection(buscar); focusSearch(); }
   }, 520);
 }
